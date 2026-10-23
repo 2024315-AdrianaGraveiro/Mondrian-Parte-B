@@ -1,11 +1,11 @@
 
 
- 
-let base;   // guarda a composição da Parte A, desenhada uma só vez
+let base;   // guarda a composição da Parte A (sem as linhas pretas)
  
 function setup() {
   pixelDensity(1);          // garante que a imagem guardada coincide com o canvas
-  createCanvas(800, 784);   // proporção do quadro (não é quadrado) 
+  createCanvas(800, 784);   // proporção do quadro (não é quadrado)
+  // Centra o canvas na página (horizontal e verticalmente)
   document.body.style.cssText = 'margin:0; min-height:100vh; display:flex; justify-content:center; align-items:center;';
   noStroke();
  
@@ -46,38 +46,38 @@ function setup() {
   rect(390, 640, 200, 90);
   drawingContext.filter = 'none';
  
-  // ---------- LINHAS PRETAS ----------
-  fill(14, 14, 16);
-  rect(362, 0, 11, 784);    // vertical principal
-  rect(0, 311, 800, 18);    // horizontal de cima
-  rect(0, 502, 800, 17);    // horizontal de baixo
-  rect(76, 519, 10, 265);   // vertical esquerda
-  rect(608, 519, 12, 265);  // vertical direita
-  rect(373, 741, 235, 14);  // pequena horizontal sob o azul
- 
-  // Guarda a composição fiel (Parte A) para a reutilizar em cada frame
+  // Guarda a composição (blocos e texturas) para a reutilizar em cada frame.
+  // As linhas pretas são desenhadas no draw(), para uma delas poder saltar.
   base = get();
 }
  
+let salto = 0;   // deslocamento vertical da linha que salta
+ 
 function draw() {
-  // 1. Repõe a composição original, intacta
+  // 1. Repõe a base: fundo, blocos de cor e texturas
   image(base, 0, 0);
  
-  // 2. Elemento generativo: os três blocos de cor deslizam suavemente para a cor contrastante e voltam, em loop
-  let t = frameCount * 0.015;  // velocidade (sobe para mais rápido, desce para mais lento)
- 
-  //          x    y    larg alt   cor original       cor contrastante   desfasamento
-  pintarBloco(0,   0,   362, 311, [233, 42, 0],    [0, 200, 170],     t);            // vermelho ↔ verde-água
-  pintarBloco(373, 519, 235, 222, [48, 52, 146],   [255, 140, 0],     t + TWO_PI / 3);      // azul ↔ laranja
-  pintarBloco(0,   519, 76,  265, [255, 224, 0],   [140, 0, 200],     t + TWO_PI * 2 / 3);  // amarelo ↔ violeta
-}
- 
-// Pinta um bloco com uma cor que oscila entre a original e a contrastante
-function pintarBloco(x, y, w, h, corA, corB, fase) {
-  let k = (sin(fase) + 1) / 2 * 0.3;                 // só vai até 30% da cor contrastante: mudança subtil
-  let cor = lerpColor(color(corA), color(corB), k);
-  cor.setAlpha(170);                                 // deixa ver a textura por baixo
+  // 2. O bloco vermelho muda lentamente de cor (verde-água, mas só até 30%)
+  let t = frameCount * 0.015;
+  let k = (sin(t) + 1) / 2 * 0.3;
+  let cor = lerpColor(color(233, 42, 0), color(0, 200, 170), k);
+  cor.setAlpha(170);
   noStroke();
   fill(cor);
-  rect(x, y, w, h);
+  rect(0, 0, 362, 311);
+ 
+  // 3. A linha horizontal de baixo dá um pequeno salto de tempos a tempos
+  if (frameCount % 40 === 0) {
+    salto = random() < 0.5 ? 0 : random(-10, 10);   // metade das vezes volta ao sítio
+  }
+ 
+  // 4. Linhas pretas
+  fill(14, 14, 16);
+  rect(362, 0, 11, 784);          // vertical principal
+  rect(0, 311, 800, 18);          // horizontal de cima
+  rect(0, 502 + salto, 800, 17);  // horizontal de baixo (a que salta)
+  rect(76, 519, 10, 265);         // vertical esquerda
+  rect(608, 519, 12, 265);        // vertical direita
+  rect(373, 741, 235, 14);        // pequena horizontal sob o azul
 }
+ 
